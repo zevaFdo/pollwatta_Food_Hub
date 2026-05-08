@@ -1,4 +1,4 @@
-# Polwatta Sip & Script POS
+# POLWATTA FOOD HUB POS
 
 A mobile-responsive Cafe & BBQ point-of-sale and admin dashboard, built with Next.js 14, Tailwind CSS, and Supabase.
 

@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Polwatta Sip & Script POS",
+  title: "POLWATTA FOOD HUB POS",
   description: "Cafe & BBQ point-of-sale and admin dashboard.",
 };
 

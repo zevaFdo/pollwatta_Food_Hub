@@ -12,6 +12,7 @@ export function OrderSuccessDialog({ sale, onClose }: { sale: Sale; onClose: () 
     totalAmount: sale.total_amount,
     items: sale.items,
     createdAt: sale.created_at,
+    paymentMethod: sale.payment_method,
   };
 
   const phone = sale.customer_phone ?? "";
