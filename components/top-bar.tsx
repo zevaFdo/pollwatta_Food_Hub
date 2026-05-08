@@ -30,7 +30,7 @@ export function TopBar({ userEmail, role, current }: TopBarProps) {
             P
           </div>
           <div className="hidden sm:block">
-            <div className="font-semibold text-stone-900 leading-tight">Polwatta Sip & Script</div>
+            <div className="font-semibold text-stone-900 leading-tight">POLWATTA FOOD HUB</div>
             <div className="text-xs text-stone-500">{role === "admin" ? "Admin" : "Cashier"}</div>
           </div>
         </div>

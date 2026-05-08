@@ -9,7 +9,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-600 text-white text-3xl mb-3 shadow-lg">
             P
           </div>
-          <h1 className="text-3xl font-bold text-stone-900">Polwatta Sip & Script</h1>
+          <h1 className="text-3xl font-bold text-stone-900">POLWATTA FOOD HUB</h1>
           <p className="text-stone-600 mt-1">Cafe & BBQ POS System</p>
         </div>
 
