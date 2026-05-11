@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, BarChart3, ShoppingBag } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
 interface TopBarProps {
   userEmail: string;
   role: "cashier" | "admin";
-  current: "pos" | "admin";
+  current: "pos" | "admin" | "bills";
 }
 
 export function TopBar({ userEmail, role, current }: TopBarProps) {
@@ -36,22 +36,26 @@ export function TopBar({ userEmail, role, current }: TopBarProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link href="/pos">
+            <Button variant={current === "pos" ? "primary" : "ghost"} size="sm">
+              <ShoppingBag size={16} />
+              <span className="hidden sm:inline">POS</span>
+            </Button>
+          </Link>
           {role === "admin" && (
-            <>
-              <Link href="/pos">
-                <Button variant={current === "pos" ? "primary" : "ghost"} size="sm">
-                  <ShoppingBag size={16} />
-                  <span className="hidden sm:inline">POS</span>
-                </Button>
-              </Link>
-              <Link href="/admin">
-                <Button variant={current === "admin" ? "primary" : "ghost"} size="sm">
-                  <BarChart3 size={16} />
-                  <span className="hidden sm:inline">Admin</span>
-                </Button>
-              </Link>
-            </>
+            <Link href="/admin">
+              <Button variant={current === "admin" ? "primary" : "ghost"} size="sm">
+                <BarChart3 size={16} />
+                <span className="hidden sm:inline">Admin</span>
+              </Button>
+            </Link>
           )}
+          <Link href="/bills">
+            <Button variant={current === "bills" ? "primary" : "ghost"} size="sm">
+              <Receipt size={16} />
+              <span className="hidden sm:inline">Bills</span>
+            </Button>
+          </Link>
           <span className="hidden md:inline text-sm text-stone-600 ml-2">{userEmail}</span>
           <Button variant="ghost" size="sm" onClick={signOut} title="Sign out">
             <LogOut size={16} />
