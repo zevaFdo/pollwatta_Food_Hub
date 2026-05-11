@@ -1,8 +1,9 @@
 "use client";
 
-import { CheckCircle2, MessageCircle, Smartphone } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, MessageCircle, Smartphone, Receipt } from "lucide-react";
 import type { Sale } from "@/types/db";
-import { buildWhatsAppUrl, buildSmsUrl, formatLKR, normalizeLKPhone } from "@/lib/format";
+import { buildWhatsAppUrl, buildSmsUrl, formatLKR, normalizeLKPhone, shortBillCode } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -31,7 +32,7 @@ export function OrderSuccessDialog({ sale, onClose }: { sale: Sale; onClose: () 
           <div>
             <DialogTitle>Order Complete</DialogTitle>
             <p className="text-xs text-stone-500 mt-0.5">
-              Order #{sale.id.slice(0, 8).toUpperCase()}
+              Order #{shortBillCode(sale.id)}
             </p>
           </div>
         </div>
@@ -55,9 +56,9 @@ export function OrderSuccessDialog({ sale, onClose }: { sale: Sale; onClose: () 
           </p>
         )}
       </DialogBody>
-      <DialogFooter className="!justify-stretch">
+      <DialogFooter className="!justify-stretch flex-wrap">
         {whatsappUrl ? (
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[140px]">
             <Button variant="success" size="lg" className="w-full">
               <MessageCircle size={18} />
               Send via WhatsApp
@@ -65,14 +66,20 @@ export function OrderSuccessDialog({ sale, onClose }: { sale: Sale; onClose: () 
           </a>
         ) : null}
         {smsUrl ? (
-          <a href={smsUrl} className="flex-1">
+          <a href={smsUrl} className="flex-1 min-w-[120px]">
             <Button variant="outline" size="lg" className="w-full">
               <Smartphone size={18} />
               SMS
             </Button>
           </a>
         ) : null}
-        <Button variant="ghost" size="lg" onClick={onClose} className="flex-1">
+        <Link href={`/bills/${sale.id}`} className="flex-1 min-w-[120px]">
+          <Button variant="outline" size="lg" className="w-full">
+            <Receipt size={18} />
+            View Bill
+          </Button>
+        </Link>
+        <Button variant="ghost" size="lg" onClick={onClose} className="flex-1 min-w-[100px]">
           Done
         </Button>
       </DialogFooter>

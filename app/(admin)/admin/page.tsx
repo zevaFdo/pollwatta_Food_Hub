@@ -8,6 +8,7 @@ import { TopSellingChart } from "@/components/admin/top-selling-chart";
 import { StockTable } from "@/components/admin/stock-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { shortBillCode } from "@/lib/format";
 import type { Product, TopSellingItem } from "@/types/db";
 
 export const dynamic = "force-dynamic";
@@ -134,8 +135,14 @@ function RecentSalesCard({
 }) {
   return (
     <Card>
-      <div className="px-5 py-4 border-b border-stone-100">
+      <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
         <h3 className="font-semibold text-stone-900">Recent Sales</h3>
+        <Link
+          href="/bills"
+          className="text-xs font-medium text-brand-700 hover:text-brand-800"
+        >
+          View all
+        </Link>
       </div>
       <CardContent className="p-0">
         {sales.length === 0 ? (
@@ -149,19 +156,24 @@ function RecentSalesCard({
                 hour12: true,
               });
               return (
-                <li key={s.id} className="flex items-center justify-between px-5 py-3 text-sm">
-                  <div>
-                    <div className="font-medium text-stone-900">
-                      Order #{s.id.slice(0, 6).toUpperCase()}
+                <li key={s.id}>
+                  <Link
+                    href={`/bills/${s.id}`}
+                    className="flex items-center justify-between px-5 py-3 text-sm hover:bg-stone-50 transition-colors"
+                  >
+                    <div>
+                      <div className="font-medium text-stone-900">
+                        Order #{shortBillCode(s.id)}
+                      </div>
+                      <div className="text-xs text-stone-500">
+                        {t}
+                        {s.customer_phone ? ` · ${s.customer_phone}` : ""}
+                      </div>
                     </div>
-                    <div className="text-xs text-stone-500">
-                      {t}
-                      {s.customer_phone ? ` · ${s.customer_phone}` : ""}
+                    <div className="font-bold text-brand-700">
+                      Rs. {Number(s.total_amount).toLocaleString()}
                     </div>
-                  </div>
-                  <div className="font-bold text-brand-700">
-                    Rs. {Number(s.total_amount).toLocaleString()}
-                  </div>
+                  </Link>
                 </li>
               );
             })}

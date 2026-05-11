@@ -7,6 +7,14 @@ export function formatLKR(amount: number): string {
   })}`;
 }
 
+// Short, user-facing bill code derived from the sale UUID. Cashiers / customers
+// see this code on receipts, and can type it back into the bill lookup search.
+export const BILL_CODE_LENGTH = 8;
+
+export function shortBillCode(saleId: string, length: number = BILL_CODE_LENGTH): string {
+  return saleId.slice(0, length).toUpperCase();
+}
+
 const INSTAGRAM_URL =
   "https://www.instagram.com/polwatta_bbq_house?igsh=MTR6cHFveXlobzczZg%3D%3D&utm_source=qr";
 const FACEBOOK_URL =
@@ -29,7 +37,7 @@ export function buildReceiptText(sale: ReceiptInput): string {
     `🔥 *පොල්වත්ත FOOD HUB* 🔥`,
     `_Marawila Beachfront_`,
     `------------------------------------------`,
-    `📄 *Order:* #${sale.saleId.slice(0, 8).toUpperCase()}`,
+    `📄 *Order:* #${shortBillCode(sale.saleId)}`,
     `📅 *Date:* ${dateStr}`,
     `------------------------------------------`,
     ``,
