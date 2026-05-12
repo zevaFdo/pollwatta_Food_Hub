@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Package, Layers } from "lucide-react";
+import { Package, Layers, Wallet } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { TopBar } from "@/components/top-bar";
 import { RevenueCard } from "@/components/admin/revenue-card";
 import { TopSellingChart } from "@/components/admin/top-selling-chart";
 import { StockTable } from "@/components/admin/stock-table";
+import { DashboardOverview } from "@/components/admin/dashboard-overview";
+import { defaultLast30Days, startOfDayISO, endOfDayISO } from "@/lib/date-range";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { shortBillCode } from "@/lib/format";
@@ -29,7 +31,18 @@ export default async function AdminDashboardPage() {
 
   if (profile?.role !== "admin") redirect("/pos");
 
-  const [salesTodayRes, productsRes, topItemsRes, recentSalesRes] = await Promise.all([
+  const initialRange = defaultLast30Days();
+  const periodFromISO = startOfDayISO(initialRange.from);
+  const periodToISO = endOfDayISO(initialRange.to);
+
+  const [
+    salesTodayRes,
+    productsRes,
+    topItemsRes,
+    recentSalesRes,
+    periodSalesRes,
+    periodExpensesRes,
+  ] = await Promise.all([
     supabase
       .from("sales")
       .select("total_amount, created_at")
@@ -45,6 +58,16 @@ export default async function AdminDashboardPage() {
       .select("id, created_at, total_amount, items, customer_phone")
       .order("created_at", { ascending: false })
       .limit(8),
+    supabase
+      .from("sales")
+      .select("total_amount, created_at")
+      .gte("created_at", periodFromISO)
+      .lte("created_at", periodToISO),
+    supabase
+      .from("expenses")
+      .select("amount, created_at")
+      .gte("created_at", periodFromISO)
+      .lte("created_at", periodToISO),
   ]);
 
   const salesToday = (salesTodayRes.data ?? []) as Array<{ total_amount: number; created_at: string }>;
@@ -56,6 +79,14 @@ export default async function AdminDashboardPage() {
     total_amount: number;
     items: unknown;
     customer_phone: string | null;
+  }>;
+  const initialPeriodSales = (periodSalesRes.data ?? []) as Array<{
+    total_amount: number;
+    created_at: string;
+  }>;
+  const initialPeriodExpenses = (periodExpensesRes.data ?? []) as Array<{
+    amount: number;
+    created_at: string;
   }>;
 
   const todayTotal = salesToday.reduce((acc, row) => acc + Number(row.total_amount), 0);
@@ -71,7 +102,7 @@ export default async function AdminDashboardPage() {
             <h1 className="text-2xl font-bold text-stone-900">Admin Dashboard</h1>
             <p className="text-sm text-stone-600">Live overview of today&apos;s operations.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link href="/admin/products">
               <Button variant="outline">
                 <Package size={16} />
@@ -84,8 +115,20 @@ export default async function AdminDashboardPage() {
                 Manage Combos
               </Button>
             </Link>
+            <Link href="/admin/expenses">
+              <Button variant="outline">
+                <Wallet size={16} />
+                Manage Expenses
+              </Button>
+            </Link>
           </div>
         </div>
+
+        <DashboardOverview
+          initialSales={initialPeriodSales}
+          initialExpenses={initialPeriodExpenses}
+          initialRange={initialRange}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <RevenueCard initialTotal={todayTotal} initialCount={todayCount} />
