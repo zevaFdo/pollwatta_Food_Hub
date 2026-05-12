@@ -65,6 +65,26 @@ export interface InventoryLog {
   created_at: string;
 }
 
+export type ExpenseCategory =
+  | "Ingredients"
+  | "Utilities"
+  | "Salaries"
+  | "Rent"
+  | "Maintenance"
+  | "Marketing"
+  | "Other";
+
+export interface Expense {
+  id: string;
+  created_at: string;
+  expense_date: string;
+  category: ExpenseCategory;
+  amount: number;
+  description: string | null;
+  image_url: string | null;
+  created_by: string | null;
+}
+
 export interface TopSellingItem {
   name: string;
   units_sold: number;
@@ -86,6 +106,7 @@ export interface Database {
       combos: RowOnlyTable<Combo>;
       sales: RowOnlyTable<Sale>;
       inventory_logs: RowOnlyTable<InventoryLog>;
+      expenses: RowOnlyTable<Expense>;
     };
     Views: {
       v_top_selling_items: {
