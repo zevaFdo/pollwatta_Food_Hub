@@ -23,7 +23,7 @@ interface SalesRow {
 
 interface ExpenseRow {
   amount: number;
-  created_at: string;
+  expense_date: string;
 }
 
 interface DashboardOverviewProps {
@@ -64,9 +64,12 @@ export function DashboardOverview({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
-        .select("amount, created_at")
-        .gte("created_at", fromISO)
-        .lte("created_at", toISO);
+        .select("amount, expense_date")
+        // expense_date is a plain DATE column; compare against the picker's
+        // YYYY-MM-DD strings directly so past-dated entries land on the day
+        // they occurred rather than the day they were inserted.
+        .gte("expense_date", range.from)
+        .lte("expense_date", range.to);
       if (error) throw error;
       return (data ?? []) as ExpenseRow[];
     },

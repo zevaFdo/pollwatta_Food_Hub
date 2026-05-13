@@ -65,9 +65,11 @@ export default async function AdminDashboardPage() {
       .lte("created_at", periodToISO),
     supabase
       .from("expenses")
-      .select("amount, created_at")
-      .gte("created_at", periodFromISO)
-      .lte("created_at", periodToISO),
+      .select("amount, expense_date")
+      // Filter by the user-recorded date, not the insert timestamp, so
+      // back-dated expenses appear on the day they actually occurred.
+      .gte("expense_date", initialRange.from)
+      .lte("expense_date", initialRange.to),
   ]);
 
   const salesToday = (salesTodayRes.data ?? []) as Array<{ total_amount: number; created_at: string }>;
@@ -86,7 +88,7 @@ export default async function AdminDashboardPage() {
   }>;
   const initialPeriodExpenses = (periodExpensesRes.data ?? []) as Array<{
     amount: number;
-    created_at: string;
+    expense_date: string;
   }>;
 
   const todayTotal = salesToday.reduce((acc, row) => acc + Number(row.total_amount), 0);

@@ -14,9 +14,10 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { formatLKR } from "@/lib/format";
 
-interface AmountRow {
+interface ExpenseRow {
   amount: number;
-  created_at: string;
+  // Plain YYYY-MM-DD string (the date the expense occurred, not when it was inserted).
+  expense_date: string;
 }
 
 interface SalesRow {
@@ -26,7 +27,7 @@ interface SalesRow {
 
 interface RevenueVsExpensesChartProps {
   sales: SalesRow[];
-  expenses: AmountRow[];
+  expenses: ExpenseRow[];
   /** Inclusive YYYY-MM-DD range used to seed empty buckets. */
   from: string;
   to: string;
@@ -75,7 +76,9 @@ export function RevenueVsExpensesChart({
       buckets.set(key, b);
     }
     for (const e of expenses) {
-      const key = localDateKey(e.created_at);
+      // expense_date is already a YYYY-MM-DD string from Postgres `date` type;
+      // use it as-is so past-dated expenses land on their real day.
+      const key = e.expense_date;
       const b = buckets.get(key) ?? { revenue: 0, expenses: 0 };
       b.expenses += Number(e.amount);
       buckets.set(key, b);
