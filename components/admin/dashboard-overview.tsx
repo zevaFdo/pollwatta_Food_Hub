@@ -14,11 +14,13 @@ import {
   type DateRange,
 } from "@/lib/date-range";
 import { RevenueVsExpensesChart } from "@/components/admin/revenue-vs-expenses-chart";
+import type { IncomeType } from "@/types/db";
 import { cn } from "@/lib/utils";
 
 interface SalesRow {
   total_amount: number;
   created_at: string;
+  income_type: IncomeType;
 }
 
 interface ExpenseRow {
@@ -50,7 +52,7 @@ export function DashboardOverview({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("total_amount, created_at")
+        .select("total_amount, created_at, income_type")
         .gte("created_at", fromISO)
         .lte("created_at", toISO);
       if (error) throw error;
@@ -80,9 +82,16 @@ export function DashboardOverview({
   const expenses = expensesQuery.data ?? [];
   const loading = salesQuery.isFetching || expensesQuery.isFetching;
 
+  const orderCount = sales.filter((s) => s.income_type === "order").length;
+  const customCount = sales.length - orderCount;
   const totalRevenue = sales.reduce((acc, s) => acc + Number(s.total_amount), 0);
   const totalExpenses = expenses.reduce((acc, e) => acc + Number(e.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
+
+  const revenueSub =
+    customCount > 0
+      ? `${orderCount} order${orderCount === 1 ? "" : "s"} · ${customCount} custom`
+      : `${orderCount} order${orderCount === 1 ? "" : "s"}`;
 
   return (
     <section className="space-y-4">
@@ -92,7 +101,7 @@ export function DashboardOverview({
         <SummaryCard
           label="Total Revenue"
           value={formatLKR(totalRevenue)}
-          sub={`${sales.length} order${sales.length === 1 ? "" : "s"}`}
+          sub={revenueSub}
           icon={<TrendingUp size={24} />}
           tone="emerald"
           loading={loading}

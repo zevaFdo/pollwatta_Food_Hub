@@ -24,7 +24,10 @@ export default async function BillsPage() {
 
   const { data: salesData } = await supabase
     .from("sales")
-    .select("id, created_at, total_amount, items, payment_method, customer_phone, cashier_id")
+    .select(
+      "id, created_at, total_amount, items, payment_method, customer_phone, cashier_id, income_type, income_category, description",
+    )
+    .eq("income_type", "order")
     .order("created_at", { ascending: false })
     .limit(100);
 

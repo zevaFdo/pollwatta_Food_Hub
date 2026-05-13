@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Plus, Minus, ShoppingBag, Loader2 } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, Loader2, PlusCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   useCart,
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Sale } from "@/types/db";
 import { OrderSuccessDialog } from "./order-success-dialog";
+import { CustomIncomeDialog } from "./custom-income-dialog";
 import { cn } from "@/lib/utils";
 
 interface CartSidebarProps {
@@ -37,6 +38,7 @@ export function CartSidebar({ cashierId, onAfterCheckout }: CartSidebarProps) {
 
   const [submitting, setSubmitting] = useState(false);
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
+  const [incomeOpen, setIncomeOpen] = useState(false);
 
   const total = getCartTotal(lines);
 
@@ -79,10 +81,20 @@ export function CartSidebar({ cashierId, onAfterCheckout }: CartSidebarProps) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 h-full">
-      <div className="px-5 py-4 border-b border-stone-200 flex items-center gap-2">
+      <div className="px-5 py-4 border-b border-stone-200 flex items-center gap-2 flex-wrap">
         <ShoppingBag size={20} className="text-brand-600" />
         <h2 className="font-semibold text-lg text-stone-900">Order</h2>
-        <span className="ml-auto text-sm text-stone-500">{lines.length} items</span>
+        <span className="text-sm text-stone-500">· {lines.length} items</span>
+        <Button
+          size="sm"
+          variant="outline"
+          className="ml-auto"
+          onClick={() => setIncomeOpen(true)}
+          title="Record non-product income (parking, tips, etc.)"
+        >
+          <PlusCircle size={14} />
+          Custom Income
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-3 scrollbar-thin">
@@ -159,6 +171,12 @@ export function CartSidebar({ cashierId, onAfterCheckout }: CartSidebarProps) {
       {completedSale && (
         <OrderSuccessDialog sale={completedSale} onClose={handleSuccessClose} />
       )}
+
+      <CustomIncomeDialog
+        open={incomeOpen}
+        cashierId={cashierId}
+        onClose={() => setIncomeOpen(false)}
+      />
     </div>
   );
 }
