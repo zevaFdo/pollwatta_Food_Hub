@@ -46,6 +46,18 @@ export interface SaleLine {
   quantity: number;
 }
 
+export type IncomeType = "order" | "custom";
+
+export const CUSTOM_INCOME_CATEGORIES = [
+  "Parking",
+  "Previous Revenue",
+  "Tips",
+  "Donation",
+  "Other",
+] as const;
+
+export type CustomIncomeCategory = (typeof CUSTOM_INCOME_CATEGORIES)[number];
+
 export interface Sale {
   id: string;
   created_at: string;
@@ -54,6 +66,9 @@ export interface Sale {
   payment_method: string;
   customer_phone: string | null;
   cashier_id: string | null;
+  income_type: IncomeType;
+  income_category: string | null;
+  description: string | null;
 }
 
 export interface InventoryLog {

@@ -33,11 +33,15 @@ export default async function BillDetailPage({
 
   const { data: sale } = await supabase
     .from("sales")
-    .select("id, created_at, total_amount, items, payment_method, customer_phone, cashier_id")
+    .select(
+      "id, created_at, total_amount, items, payment_method, customer_phone, cashier_id, income_type, income_category, description",
+    )
     .eq("id", params.id)
     .maybeSingle<Sale>();
 
-  if (!sale) notFound();
+  // Custom-income rows live in `sales` but are not receipts; treat as missing
+  // here so a stray UUID in the URL doesn't render an empty bill.
+  if (!sale || sale.income_type !== "order") notFound();
 
   let cashierName: string | null = null;
   if (sale.cashier_id) {

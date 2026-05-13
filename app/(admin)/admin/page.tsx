@@ -10,8 +10,9 @@ import { DashboardOverview } from "@/components/admin/dashboard-overview";
 import { defaultLast30Days, startOfDayISO, endOfDayISO } from "@/lib/date-range";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { shortBillCode } from "@/lib/format";
-import type { Product, TopSellingItem } from "@/types/db";
+import type { IncomeType, Product, TopSellingItem } from "@/types/db";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function AdminDashboardPage() {
   ] = await Promise.all([
     supabase
       .from("sales")
-      .select("total_amount, created_at")
+      .select("total_amount, created_at, income_type")
       .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
     supabase.from("products").select("*").order("stock_count", { ascending: true }),
     supabase
@@ -55,22 +56,28 @@ export default async function AdminDashboardPage() {
       .limit(10),
     supabase
       .from("sales")
-      .select("id, created_at, total_amount, items, customer_phone")
+      .select("id, created_at, total_amount, items, customer_phone, income_type, income_category, description")
       .order("created_at", { ascending: false })
       .limit(8),
     supabase
       .from("sales")
-      .select("total_amount, created_at")
+      .select("total_amount, created_at, income_type")
       .gte("created_at", periodFromISO)
       .lte("created_at", periodToISO),
     supabase
       .from("expenses")
-      .select("amount, created_at")
-      .gte("created_at", periodFromISO)
-      .lte("created_at", periodToISO),
+      .select("amount, expense_date")
+      // Filter by the user-recorded date, not the insert timestamp, so
+      // back-dated expenses appear on the day they actually occurred.
+      .gte("expense_date", initialRange.from)
+      .lte("expense_date", initialRange.to),
   ]);
 
-  const salesToday = (salesTodayRes.data ?? []) as Array<{ total_amount: number; created_at: string }>;
+  const salesToday = (salesTodayRes.data ?? []) as Array<{
+    total_amount: number;
+    created_at: string;
+    income_type: IncomeType;
+  }>;
   const products = (productsRes.data ?? []) as Product[];
   const topItems = (topItemsRes.data ?? []) as TopSellingItem[];
   const recentSales = (recentSalesRes.data ?? []) as Array<{
@@ -79,18 +86,23 @@ export default async function AdminDashboardPage() {
     total_amount: number;
     items: unknown;
     customer_phone: string | null;
+    income_type: IncomeType;
+    income_category: string | null;
+    description: string | null;
   }>;
   const initialPeriodSales = (periodSalesRes.data ?? []) as Array<{
     total_amount: number;
     created_at: string;
+    income_type: IncomeType;
   }>;
   const initialPeriodExpenses = (periodExpensesRes.data ?? []) as Array<{
     amount: number;
-    created_at: string;
+    expense_date: string;
   }>;
 
   const todayTotal = salesToday.reduce((acc, row) => acc + Number(row.total_amount), 0);
-  const todayCount = salesToday.length;
+  const todayOrderCount = salesToday.filter((r) => r.income_type === "order").length;
+  const todayCustomCount = salesToday.length - todayOrderCount;
 
   return (
     <div className="min-h-screen flex flex-col bg-stone-50">
@@ -131,7 +143,11 @@ export default async function AdminDashboardPage() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <RevenueCard initialTotal={todayTotal} initialCount={todayCount} />
+          <RevenueCard
+            initialTotal={todayTotal}
+            initialOrderCount={todayOrderCount}
+            initialCustomCount={todayCustomCount}
+          />
           <Card>
             <CardContent>
               <div className="text-sm text-stone-500">Active Products</div>
@@ -174,6 +190,9 @@ function RecentSalesCard({
     total_amount: number;
     items: unknown;
     customer_phone: string | null;
+    income_type: IncomeType;
+    income_category: string | null;
+    description: string | null;
   }>;
 }) {
   return (
@@ -198,25 +217,58 @@ function RecentSalesCard({
                 minute: "2-digit",
                 hour12: true,
               });
+              const isCustom = s.income_type === "custom";
+
+              const body = (
+                <div className="flex items-center justify-between px-5 py-3 text-sm">
+                  <div className="min-w-0">
+                    <div className="font-medium text-stone-900 flex items-center gap-2 flex-wrap">
+                      {isCustom ? (
+                        <>
+                          <span>
+                            {s.income_category ?? "Custom Income"}
+                          </span>
+                          <Badge variant="success">Custom</Badge>
+                        </>
+                      ) : (
+                        <>Order #{shortBillCode(s.id)}</>
+                      )}
+                    </div>
+                    <div className="text-xs text-stone-500 truncate">
+                      {t}
+                      {isCustom
+                        ? s.description
+                          ? ` · ${s.description}`
+                          : ""
+                        : s.customer_phone
+                        ? ` · ${s.customer_phone}`
+                        : ""}
+                    </div>
+                  </div>
+                  <div
+                    className={
+                      isCustom
+                        ? "font-bold text-emerald-700 ml-3 flex-shrink-0"
+                        : "font-bold text-brand-700 ml-3 flex-shrink-0"
+                    }
+                  >
+                    Rs. {Number(s.total_amount).toLocaleString()}
+                  </div>
+                </div>
+              );
+
               return (
                 <li key={s.id}>
-                  <Link
-                    href={`/bills/${s.id}`}
-                    className="flex items-center justify-between px-5 py-3 text-sm hover:bg-stone-50 transition-colors"
-                  >
-                    <div>
-                      <div className="font-medium text-stone-900">
-                        Order #{shortBillCode(s.id)}
-                      </div>
-                      <div className="text-xs text-stone-500">
-                        {t}
-                        {s.customer_phone ? ` · ${s.customer_phone}` : ""}
-                      </div>
-                    </div>
-                    <div className="font-bold text-brand-700">
-                      Rs. {Number(s.total_amount).toLocaleString()}
-                    </div>
-                  </Link>
+                  {isCustom ? (
+                    <div className="block">{body}</div>
+                  ) : (
+                    <Link
+                      href={`/bills/${s.id}`}
+                      className="block hover:bg-stone-50 transition-colors"
+                    >
+                      {body}
+                    </Link>
+                  )}
                 </li>
               );
             })}
