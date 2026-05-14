@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, BarChart3, ShoppingBag, Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/admin/notification-bell";
 
 interface TopBarProps {
   userEmail: string;
@@ -56,6 +57,7 @@ export function TopBar({ userEmail, role, current }: TopBarProps) {
               <span className="hidden sm:inline">Bills</span>
             </Button>
           </Link>
+          {role === "admin" && <NotificationBell />}
           <span className="hidden md:inline text-sm text-stone-600 ml-2">{userEmail}</span>
           <Button variant="ghost" size="sm" onClick={signOut} title="Sign out">
             <LogOut size={16} />
