@@ -106,6 +106,17 @@ export interface TopSellingItem {
   revenue: number;
 }
 
+export type NotificationType = "sale" | "expense" | "stock";
+
+export interface Notification {
+  id: string;
+  created_at: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  is_read: boolean;
+}
+
 type RowOnlyTable<T> = {
   Row: T;
   Insert: Partial<T> & Record<string, unknown>;
@@ -122,6 +133,7 @@ export interface Database {
       sales: RowOnlyTable<Sale>;
       inventory_logs: RowOnlyTable<InventoryLog>;
       expenses: RowOnlyTable<Expense>;
+      notifications: RowOnlyTable<Notification>;
     };
     Views: {
       v_top_selling_items: {
