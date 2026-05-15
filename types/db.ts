@@ -115,6 +115,13 @@ export interface Notification {
   message: string;
   type: NotificationType;
   is_read: boolean;
+  actor_id: string | null;
+}
+
+export interface NotificationDismissal {
+  notification_id: string;
+  user_id: string;
+  dismissed_at: string;
 }
 
 type RowOnlyTable<T> = {
@@ -134,6 +141,7 @@ export interface Database {
       inventory_logs: RowOnlyTable<InventoryLog>;
       expenses: RowOnlyTable<Expense>;
       notifications: RowOnlyTable<Notification>;
+      notification_dismissals: RowOnlyTable<NotificationDismissal>;
     };
     Views: {
       v_top_selling_items: {
